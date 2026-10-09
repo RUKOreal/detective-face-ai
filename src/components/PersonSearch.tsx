@@ -46,8 +46,8 @@ const evidenceNo = (url: string, i: number) => {
 export const PersonSearch: React.FC = () => {
   const [targetImages, setTargetImages] = useState<string[]>([]);
   const [targetName, setTargetName] = useState<string>('');
-  const [threshold, setThreshold] = useState<number>(70);
-  const [topK, setTopK] = useState<number>(50);
+  const [threshold, setThreshold] = useState<number>(60);
+  const [topK, setTopK] = useState<number>(200);
   const [isSearching, setIsSearching] = useState<boolean>(false);
   const [matches, setMatches] = useState<SearchMatch[]>([]);
   const [searched, setSearched] = useState<boolean>(false);
@@ -227,8 +227,8 @@ export const PersonSearch: React.FC = () => {
         : { label: 'อาจผิดตัว', color: '#d6364a', bg: '#fde8eb' };
 
   const presets = [
-    { label: 'กว้าง', hint: 'เจอเยอะ อาจมีผิดตัว', value: 60 },
-    { label: 'พอดี', hint: 'แนะนำ', value: 70 },
+    { label: 'กว้าง', hint: 'เจอเยอะ (ค่าเริ่มต้น)', value: 60 },
+    { label: 'พอดี', hint: 'สมดุล', value: 70 },
     { label: 'เข้มงวด', hint: 'เจอน้อย แต่แม่นกว่า', value: 85 },
   ];
 
