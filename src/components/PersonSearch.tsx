@@ -158,6 +158,34 @@ export const PersonSearch: React.FC = () => {
 
   useEffect(() => { fetchIndexStatus(); }, [fetchIndexStatus]);
 
+  // ตัวอย่างผลการค้นหาสำหรับ demo / documentation
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const demoParam = params.get('demo');
+    if (demoParam === '1' || demoParam === 'modal') {
+      const demoUrl = "https://www.dusit.ac.th/home/wp-content/gallery/20-12-66-ae-e0b8aae0b8a0e0b8b2e0b884e0b893e0b8b2e0b888e0b8b2e0b8a3e0b98ce0b8a2/AP7A6353_resize.JPG";
+      setTargetImages([demoUrl]);
+      setTargetName("ดร.วิชชา ฉิมพลี");
+      fetch('http://localhost:8000/search-person', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          url: demoUrl,
+          threshold: 0.6,
+          top_k: 12,
+        })
+      }).then(r => r.json()).then(data => {
+        if (data.success && data.matches && data.matches.length > 0) {
+          setMatches(data.matches);
+          setSearched(true);
+          if (demoParam === 'modal') {
+            setSelected(data.matches[0]);
+          }
+        }
+      }).catch(() => {});
+    }
+  }, []);
+
   const handleFile = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []).slice(0, 12);
     if (files.length === 0) return;
