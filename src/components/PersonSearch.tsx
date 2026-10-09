@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { Upload, Target, MapPin, Calendar, Database, RefreshCw, Pin, ScanSearch, X, ExternalLink, Users } from 'lucide-react';
+import { ImagePlus, Plus, X, Search, SearchX, CheckCircle2, SlidersHorizontal, ChevronDown, Database, RefreshCw, MapPin, Calendar, ExternalLink, Users } from 'lucide-react';
 import { usePortfolioStore } from '../store/usePortfolioStore';
 import { FacePhoto } from './FacePhoto';
 
@@ -219,252 +219,258 @@ export const PersonSearch: React.FC = () => {
     fetchIndexStatus();
   };
 
+  const matchLevel = (c: number) =>
+    c >= 75
+      ? { label: 'เหมือนมาก', color: '#12a05c', bg: '#e6f6ee' }
+      : c >= 50
+        ? { label: 'น่าจะใช่', color: '#c27800', bg: '#fff3dc' }
+        : { label: 'อาจผิดตัว', color: '#d6364a', bg: '#fde8eb' };
+
+  const presets = [
+    { label: 'กว้าง', hint: 'เจอเยอะ อาจมีผิดตัว', value: 60 },
+    { label: 'พอดี', hint: 'แนะนำ', value: 70 },
+    { label: 'เข้มงวด', hint: 'เจอน้อย แต่แม่นกว่า', value: 85 },
+  ];
+
   return (
-    <div className="relative">
-      {/* แฟ้มเอกสาร */}
-      <div className="rounded-2xl bg-[#fffdf6] border border-[#d8c690] shadow-[0_10px_30px_rgba(59,29,110,0.15)] overflow-hidden">
-        {/* สันแฟ้ม */}
-        <div className="flex items-stretch">
-          <div className="w-3 sm:w-4 bg-gradient-to-b from-[#d4af37] via-[#b8860b] to-[#d4af37] shrink-0" />
-          <div className="flex-1 p-5 sm:p-7 space-y-5">
-            {/* หัวแฟ้ม */}
-            <div className="flex items-start justify-between flex-wrap gap-3">
-              <div>
-                <p className="text-[11px] font-black tracking-[0.25em] text-[#8a6d1b]">SUSPECT BOARD · แฟ้มสืบสวน</p>
-                <h3 className="text-xl sm:text-2xl font-black text-[#2a1152] flex items-center gap-2 mt-1">
-                  <Pin size={22} className="text-red-700 -rotate-12" />
-                  ปักหมุดผู้ต้องสงสัย แล้วพลิกแฟ้ม
-                </h3>
-              </div>
-              <button onClick={fetchIndexStatus} title="รีเฟรชสถานะ index"
-                className="flex items-center gap-1.5 px-3 py-1.5 text-[11px] font-bold text-[#2a1152] bg-white border-2 border-[#d4af37] rounded-lg hover:bg-[#faf3dd] transition-colors shadow-sm">
-                <Database size={13} />
-                {idxStatus ? `แฟ้ม: ${idxStatus.images} รูป / ${idxStatus.faces} ใบหน้า` : 'แฟ้ม: ...'}
-                <RefreshCw size={12} />
-              </button>
-            </div>
-
-            {/* บาร์โค้ดแฟ้ม */}
-            <div className="h-8 rounded bg-white border border-[#d8c690] px-3 flex items-center gap-3 overflow-hidden">
-              <div className="flex-1 h-5 opacity-70"
-                style={{ background: 'repeating-linear-gradient(90deg,#2a1152 0 2px,transparent 2px 5px,#2a1152 5px 6px,transparent 6px 10px)' }} />
-              <span className="text-[10px] font-mono font-bold text-[#2a1152] whitespace-nowrap">SDU-FACE-{idxStatus ? idxStatus.faces : '0000'}</span>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-[240px_1fr] gap-5">
-              {/* รูปผู้ต้องสงสัย (สูงสุด 12 มุม ยิ่งหลายมุมยิ่งแม่น) */}
-              <div>
-                <p className="text-[11px] font-black tracking-widest text-red-800 mb-2">① รูปผู้ต้องสงสัย ({targetImages.length}/12 มุม)</p>
-                <div className="relative bg-white p-2 pb-8 shadow-lg rotate-[-1.5deg] border border-slate-200">
-                  <div className="absolute -top-3 left-1/2 -translate-x-1/2 w-24 h-6 bg-[#f3d27a]/85 shadow-sm rotate-[-2deg] border-x border-[#b8860b]/40" />
-                  <div className="relative aspect-square overflow-hidden bg-slate-100">
-                    {targetImages.length > 0 ? (
-                      <img src={targetImages[0]} alt="target" className="w-full h-full object-cover" />
-                    ) : (
-                      <div className="w-full h-full flex flex-col items-center justify-center gap-2 text-[#6d28d9]/60 p-3 text-center">
-                        <Upload size={28} />
-                        <p className="text-xs font-bold">แตะเพื่อปักหมุดรูป</p>
-                      </div>
-                    )}
-                    <input type="file" accept="image/*" multiple onChange={handleFile} title="เลือกได้หลายรูป (สูงสุด 12)"
-                      className="absolute inset-0 opacity-0 cursor-pointer" />
-                  </div>
-                  <p className="absolute bottom-1.5 left-0 right-0 text-center text-[11px] font-mono font-bold text-slate-600 truncate px-2">
-                    {targetName || 'ยังไม่ปักหมุดรูป'}
-                  </p>
-                </div>
-                {targetImages.length > 0 && (
-                  <div className="flex gap-2 mt-2 flex-wrap items-center">
-                    {targetImages.map((t, i) => (
-                      <div key={i} className={`relative w-12 h-12 rounded-lg overflow-hidden border-2 ${i === 0 ? 'border-red-700' : 'border-[#d8c690]'}`}>
-                        <img src={t} alt={`มุม ${i + 1}`} className="w-full h-full object-cover" />
-                        <button onClick={() => removeTarget(i)} title="ลบมุมนี้"
-                          className="absolute top-0 right-0 w-4 h-4 bg-red-800 text-white text-[10px] leading-none rounded-bl-md">×</button>
-                      </div>
-                    ))}
-                    {targetImages.length < 12 && (
-                      <label title="เพิ่มรูปมุมอื่นอีก"
-                        className="relative w-12 h-12 rounded-lg border-2 border-dashed border-red-700/60 bg-red-50/50 hover:bg-red-100/60 flex flex-col items-center justify-center cursor-pointer transition-colors text-red-800">
-                        <span className="text-lg font-black leading-none">+</span>
-                        <span className="text-[9px] font-bold">เพิ่ม</span>
-                        <input type="file" accept="image/*" multiple onChange={handleFile} className="hidden" />
-                      </label>
-                    )}
-                  </div>
-                )}
-              </div>
-
-              {/* ขั้นตอน + ปุ่ม */}
-              <div className="flex flex-col justify-between gap-4">
-                <ol className="space-y-2 text-xs sm:text-sm text-[#2a1152]/80 font-medium">
-                  <li className="flex gap-2"><span className="font-black text-red-800">②</span> ตั้งเกณฑ์ความเหมือน — ยิ่งสูงยิ่งเข้ม ผิดตัวน้อยลง</li>
-                  <li className="flex gap-2"><span className="font-black text-red-800">③</span> กดพลิกแฟ้ม — AI เทียบลายเซ็นใบหน้ากับแฟ้มทั้งหมดในไม่กี่วินาที</li>
-                </ol>
-                <div className="space-y-3 bg-white p-4 rounded-xl border-2 border-[#2a1152]/15">
-                  <div className="flex justify-between items-center text-xs font-black text-[#2a1152]">
-                    <span>เกณฑ์ความเหมือน</span>
-                    <span className="font-mono bg-red-800 text-white px-2 py-0.5 rounded-md -rotate-2 inline-block">{threshold}%</span>
-                  </div>
-                  <input type="range" min={50} max={99} value={threshold}
-                    onChange={(e) => setThreshold(Number(e.target.value))}
-                    className="w-full accent-red-800 cursor-pointer" />
-
-                  <div className="pt-2 border-t border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                    <span className="text-xs font-bold text-[#2a1152]">จำนวนหลักฐานที่ดึง</span>
-                    <div className="inline-flex flex-wrap rounded-lg bg-slate-100 p-0.5 border border-slate-200 text-xs font-bold gap-0.5">
-                      {[30, 50, 100, 200, 500, 2000].map((k) => (
-                        <button
-                          key={k}
-                          type="button"
-                          onClick={() => setTopK(k)}
-                          className={`px-2.5 py-1 rounded-md transition-colors ${
-                            topK === k
-                              ? 'bg-red-800 text-white shadow-sm'
-                              : 'text-slate-600 hover:text-[#2a1152]'
-                          }`}
-                        >
-                          {k.toLocaleString()} ชิ้น
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-                <button onClick={handleSearch} disabled={targetImages.length === 0 || isSearching}
-                  className="inline-flex items-center justify-center gap-2 px-8 py-4 bg-red-800 hover:bg-red-700 disabled:opacity-40 disabled:cursor-not-allowed text-white font-black text-sm sm:text-base rounded-xl shadow-[0_6px_0_#7f1d1d] hover:shadow-[0_4px_0_#7f1d1d] hover:translate-y-[2px] active:shadow-none active:translate-y-[6px] transition-all tracking-wide">
-                  <ScanSearch size={20} className="text-[#f3d27a]" />
-                  {isSearching ? 'กำลังพลิกแฟ้ม...' : 'พลิกแฟ้มหาหลักฐาน'}
-                </button>
-                {searchInfo && <p className="text-[11px] text-[#2a1152]/60 font-mono">{searchInfo}</p>}
-              </div>
-            </div>
-
-            {/* หลักฐาน */}
-            {searched && (
-              <div className="space-y-4 pt-3 border-t-2 border-dashed border-[#d8c690]">
-                <h4 className="text-sm font-black text-[#2a1152] flex items-center gap-2">
-                  <span className={`px-2.5 py-1 rounded-md text-white text-xs -rotate-2 inline-block ${matches.length > 0 ? 'bg-red-800' : 'bg-slate-400'}`}>
-                    {matches.length > 0 ? `หลักฐาน ${matches.length} ชิ้น` : 'ไม่พบหลักฐาน'}
-                  </span>
-                  {matches.length > 0 && <span className="font-medium">เรียงตามความเหมือน</span>}
-                  {matches.length === 0 && <span className="font-medium">ลองลดเกณฑ์ความเหมือนลง</span>}
-                </h4>
-                {scanningCards && (
-                  <p className="text-[11px] text-[#2a1152]/60 font-bold animate-pulse">⏳ กำลังสแกนทั้งรูปทุกใบ กรอบ 🟢/🔴 จะขึ้นเองทีละใบ...</p>
-                )}
-                {!scanningCards && matches.length > Math.min(topK, 30) && (
-                  <p className="text-[11px] text-[#2a1152]/60 font-medium">สแกนกรอบอัตโนมัติ {Math.min(topK, 30)} ใบแรก (คลิกใบอื่นเพื่อสแกนเพิ่มใน modal)</p>
-                )}
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {matches.map((m, i) => {
-                    const tilt = i % 2 === 0 ? 'rotate-[0.8deg]' : '-rotate-[0.8deg]';
-                    const scanned = scanMap[m.image_url];
-                    const gCount = scanned ? scanned.filter(f => f.is_target).length : 0;
-                    const rCount = scanned ? scanned.length - gCount : 0;
-                    const lowConfidence = m.match_confidence < 40;
-                    return (
-                      <figure key={`${m.image_url}-${i}`} onClick={() => setSelected(m)}
-                        className={`relative bg-white p-2 pb-3 shadow-xl border ${lowConfidence ? 'border-amber-400 opacity-50' : 'border-slate-200'} ${tilt} hover:rotate-0 hover:scale-[1.02] transition-transform cursor-pointer`}
-                        title="คลิกเพื่อดูรายละเอียดหลักฐาน">
-                        {/* เทปกาว */}
-                        <div className="absolute -top-3 left-1/2 -translate-x-1/2 w-24 h-6 bg-[#f3d27a]/85 shadow-sm rotate-[3deg] border-x border-[#b8860b]/40 z-10" />
-                        <div className="relative aspect-[4/3] bg-purple-950 overflow-hidden">
-                          {(imgRetry[m.image_url] ?? 0) > 2 ? (
-                            <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 p-4 text-center">
-                              <p className="text-purple-200 text-xs font-bold">โหลดรูปไม่ได้ชั่วคราว</p>
-                              <a href={m.image_url} target="_blank" rel="noreferrer" onClick={(e) => e.stopPropagation()}
-                                className="text-[#f3d27a] text-xs font-bold underline">เปิดรูปต้นฉบับ</a>
-                            </div>
-                          ) : (
-                            <FacePhoto
-                              src={proxied(m.image_url) + ((imgRetry[m.image_url] ?? 0) > 0 ? `&r=${imgRetry[m.image_url]}` : '')}
-                              alt={m.title}
-                              fit="cover"
-                              boxes={scanned || [{ ...m, is_target: false }]}
-                              onError={() => setImgRetry(prev => ({ ...prev, [m.image_url]: (prev[m.image_url] ?? 0) + 1 }))}
-                              className="absolute inset-0 w-full h-full"
-                            />
-                          )}
-                          {scanned ? (
-                            <div className="absolute top-2 left-2 flex gap-1 text-[10px] font-black pointer-events-none">
-                              <span className="px-1.5 py-0.5 rounded-md bg-emerald-700/95 text-white">🟢{gCount}</span>
-                              <span className="px-1.5 py-0.5 rounded-md bg-red-700/95 text-white">🔴{rCount}</span>
-                            </div>
-                          ) : (
-                          <>
-                          {/* ตราประทับ MATCH */}
-                          <div className="absolute top-2 right-2 rotate-12 rounded-full border-[3px] border-red-700 bg-red-700/15 backdrop-blur-[1px] w-16 h-16 flex flex-col items-center justify-center shadow-lg">
-                            <span className="text-red-700 font-black text-[13px] leading-none">MATCH</span>
-                            <span className="text-red-700 font-black text-[13px] leading-none">{m.match_confidence}%</span>
-                          </div>
-                          {scanningCards && (
-                            <div className="absolute bottom-2 left-2 px-2 py-0.5 rounded-md bg-purple-950/85 text-[#f3d27a] text-[10px] font-bold animate-pulse pointer-events-none">
-                              ⏳ กำลังสแกนทั้งรูป...
-                            </div>
-                          )}
-                          </>
-                          )}
-                        </div>
-                        <figcaption className="pt-2 px-1 space-y-1">
-                          <p className="text-[10px] font-mono font-bold text-red-800">{evidenceNo(m.image_url, i)}</p>
-                          {lowConfidence && (
-                            <p className="text-[10px] font-bold text-amber-600 bg-amber-50 border border-amber-300 rounded px-1.5 py-0.5 inline-block">⚠ อาจผิดตัว (ความเหมือนต่ำ)</p>
-                          )}
-                          <p className="text-xs font-bold text-[#2a1152] line-clamp-1">{m.title || 'กิจกรรม มหาวิทยาลัยสวนดุสิต'}</p>
-                          <div className="flex items-center gap-3 text-[11px] text-slate-500">
-                            <span className="flex items-center gap-1"><MapPin size={12} className="text-[#6d28d9]" />{m.where || 'ม.สวนดุสิต'}</span>
-                            <span className="flex items-center gap-1"><Calendar size={12} className="text-[#b8860b]" />{m.date || `พ.ศ. ${m.year}`}</span>
-                          </div>
-                        </figcaption>
-                      </figure>
-                    );
-                  })}
-                </div>
-              </div>
-            )}
+    <div className="grid grid-cols-1 lg:grid-cols-[380px_1fr] gap-6 items-start">
+      {/* ───── ซ้าย: ขั้นตอนการค้นหา ───── */}
+      <aside className="card p-5 sm:p-6 space-y-6 lg:sticky lg:top-24">
+        {/* ขั้นที่ 1 */}
+        <section className="space-y-3">
+          <div className="flex items-center gap-3">
+            <span className="step-no">1</span>
+            <h2 className="font-semibold text-lg">เลือกรูปคนที่ต้องการหา</h2>
           </div>
-        </div>
-      </div>
 
-      {/* Modal รายละเอียดหลักฐาน */}
+          {targetImages.length === 0 ? (
+            <label className="dropzone relative rounded-2xl flex flex-col items-center justify-center gap-2 text-center py-10 px-4 cursor-pointer">
+              <ImagePlus size={40} className="text-[#3b5bdb]" />
+              <span className="font-semibold text-[#3b5bdb]">กดเพื่อเลือกรูป</span>
+              <span className="text-sm text-[#5d6882]">เลือกได้หลายรูป (สูงสุด 12 รูป)<br />ใช้รูปที่เห็นหน้าตรงและชัดเจน</span>
+              <input type="file" accept="image/*" multiple onChange={handleFile} className="absolute inset-0 opacity-0 cursor-pointer" />
+            </label>
+          ) : (
+            <div className="space-y-3">
+              <div className="relative rounded-2xl overflow-hidden bg-[#eef1f8] aspect-[4/3]">
+                <img src={targetImages[0]} alt="รูปเป้าหมาย" className="w-full h-full object-cover" />
+                <span className="absolute bottom-2 left-2 px-2.5 py-1 rounded-lg bg-black/65 text-white text-xs max-w-[85%] truncate">
+                  {targetName || 'รูปเป้าหมาย'}
+                </span>
+              </div>
+              <div className="flex gap-2 flex-wrap items-center">
+                {targetImages.map((t, i) => (
+                  <div key={i} className={`relative w-14 h-14 rounded-xl overflow-hidden border-2 ${i === 0 ? 'border-[#3b5bdb]' : 'border-[#e2e7f1]'}`}>
+                    <img src={t} alt={`รูปที่ ${i + 1}`} className="w-full h-full object-cover" />
+                    <button onClick={() => removeTarget(i)} title="ลบรูปนี้"
+                      className="absolute top-0.5 right-0.5 w-5 h-5 rounded-full bg-black/70 hover:bg-[#d6364a] text-white grid place-items-center transition">
+                      <X size={12} />
+                    </button>
+                  </div>
+                ))}
+                {targetImages.length < 12 && (
+                  <label title="เพิ่มรูปอีก"
+                    className="relative w-14 h-14 rounded-xl border-2 border-dashed border-[#b9c4e6] text-[#3b5bdb] hover:bg-[#eef2ff] grid place-items-center cursor-pointer transition">
+                    <Plus size={22} />
+                    <input type="file" accept="image/*" multiple onChange={handleFile} className="hidden" />
+                  </label>
+                )}
+              </div>
+              <p className="text-sm text-[#5d6882]">เลือกแล้ว {targetImages.length} รูป · ยิ่งมีหลายมุมยิ่งแม่นยำ</p>
+            </div>
+          )}
+        </section>
+
+        {/* ขั้นที่ 2 */}
+        <section className="space-y-3">
+          <div className="flex items-center gap-3">
+            <span className="step-no">2</span>
+            <h2 className="font-semibold text-lg">เลือกความละเอียดในการค้น</h2>
+          </div>
+          <div className="grid grid-cols-3 gap-2">
+            {presets.map((p) => {
+              const active = threshold === p.value;
+              return (
+                <button key={p.value} type="button" onClick={() => setThreshold(p.value)}
+                  className={`rounded-xl border-2 px-2 py-2.5 text-center transition ${active
+                    ? 'border-[#3b5bdb] bg-[#eef2ff] text-[#2f49b3]'
+                    : 'border-[#e2e7f1] hover:border-[#c9d2e8] text-[#1b2437]'}`}>
+                  <span className="block font-semibold">{p.label}</span>
+                  <span className="block text-[11px] text-[#5d6882] leading-tight mt-0.5">{p.hint}</span>
+                </button>
+              );
+            })}
+          </div>
+
+          <details className="group text-sm">
+            <summary className="cursor-pointer text-[#3b5bdb] font-medium inline-flex items-center gap-1.5 select-none list-none">
+              <SlidersHorizontal size={15} /> ตั้งค่าเพิ่มเติม
+              <ChevronDown size={15} className="group-open:rotate-180 transition-transform" />
+            </summary>
+            <div className="mt-3 space-y-4 p-4 rounded-xl bg-[#f4f6fb]">
+              <div>
+                <div className="flex justify-between mb-2">
+                  <span className="font-medium">ความเหมือนขั้นต่ำ</span>
+                  <span className="font-semibold text-[#3b5bdb]">{threshold}%</span>
+                </div>
+                <input type="range" min={50} max={99} value={threshold}
+                  onChange={(e) => setThreshold(Number(e.target.value))}
+                  className="simple-range w-full cursor-pointer" />
+                <div className="flex justify-between text-xs text-[#5d6882] mt-1"><span>เจอเยอะ</span><span>แม่นกว่า</span></div>
+              </div>
+              <div>
+                <label htmlFor="topk" className="font-medium block mb-2">แสดงผลสูงสุด</label>
+                <select id="topk" value={topK} onChange={(e) => setTopK(Number(e.target.value))}
+                  className="w-full rounded-lg border border-[#e2e7f1] bg-white px-3 py-2">
+                  {[30, 50, 100, 200, 500, 2000].map((k) => (
+                    <option key={k} value={k}>{k.toLocaleString()} รูป</option>
+                  ))}
+                </select>
+              </div>
+            </div>
+          </details>
+        </section>
+
+        {/* ขั้นที่ 3 */}
+        <section className="space-y-3">
+          <div className="flex items-center gap-3">
+            <span className="step-no">3</span>
+            <h2 className="font-semibold text-lg">เริ่มค้นหา</h2>
+          </div>
+          <button onClick={handleSearch} disabled={targetImages.length === 0 || isSearching}
+            className="btn-primary w-full py-4 text-lg flex items-center justify-center gap-2.5">
+            {isSearching ? <><span className="spinner" /> กำลังค้นหา...</> : <><Search size={22} /> ค้นหาในภาพกิจกรรม</>}
+          </button>
+          {targetImages.length === 0 && (
+            <p className="text-sm text-[#5d6882] text-center">โปรดเลือกรูปในขั้นที่ 1 ก่อน</p>
+          )}
+          {searchInfo && <p className="text-xs text-[#5d6882] text-center">{searchInfo}</p>}
+        </section>
+
+        <div className="flex items-center justify-between text-xs text-[#5d6882] pt-4 border-t border-[#e2e7f1]">
+          <span className="inline-flex items-center gap-1.5">
+            <Database size={14} />
+            {idxStatus ? `ในระบบ ${idxStatus.images.toLocaleString()} รูป · ${idxStatus.faces.toLocaleString()} ใบหน้า` : 'กำลังเชื่อมต่อระบบ...'}
+          </span>
+          <button onClick={fetchIndexStatus} title="รีเฟรช" className="p-1.5 rounded-lg hover:bg-[#f4f6fb]"><RefreshCw size={14} /></button>
+        </div>
+      </aside>
+
+      {/* ───── ขวา: ผลลัพธ์ ───── */}
+      <section className="min-w-0 space-y-4">
+        {!searched && !isSearching && (
+          <div className="card px-6 py-16 text-center">
+            <div className="mx-auto w-20 h-20 rounded-full bg-[#eef2ff] text-[#3b5bdb] grid place-items-center mb-4">
+              <Search size={36} />
+            </div>
+            <h2 className="text-xl font-semibold">ผลการค้นหาจะแสดงที่นี่</h2>
+            <p className="text-[#5d6882] mt-2 max-w-md mx-auto">
+              ทำตาม 3 ขั้นตอนทางซ้าย: เลือกรูป → เลือกความละเอียด → กดค้นหา
+            </p>
+          </div>
+        )}
+
+        {isSearching && (
+          <div className="card px-6 py-16 text-center">
+            <span className="spinner spinner-dark mx-auto block" style={{ width: 44, height: 44, borderWidth: 4 }} />
+            <h2 className="text-xl font-semibold mt-5">กำลังค้นหาในภาพกิจกรรม...</h2>
+            <p className="text-[#5d6882] mt-1">ใช้เวลาไม่กี่วินาที โปรดรอสักครู่</p>
+          </div>
+        )}
+
+        {searched && !isSearching && (
+          <>
+            <div className="card px-5 py-4 flex flex-wrap items-center justify-between gap-3">
+              <div>
+                <h2 className="text-lg font-semibold flex items-center gap-2">
+                  {matches.length > 0
+                    ? <><CheckCircle2 className="text-[#12a05c]" size={22} /> พบ {matches.length} รูป</>
+                    : <><SearchX className="text-[#5d6882]" size={22} /> ไม่พบรูปที่ตรงกัน</>}
+                </h2>
+                <p className="text-sm text-[#5d6882]">
+                  {matches.length > 0
+                    ? 'เรียงจากเหมือนมากไปน้อย · คลิกรูปเพื่อดูรายละเอียด'
+                    : 'ลองเลือก "กว้าง" ในขั้นที่ 2 หรือใช้รูปที่เห็นหน้าชัดกว่าเดิม'}
+                </p>
+              </div>
+              {matches.length > 0 && (
+                <div className="flex items-center gap-3 text-xs text-[#5d6882]">
+                  <span className="inline-flex items-center gap-1.5"><i className="w-3 h-3 rounded-sm border-2 border-[#12a05c] inline-block" />คนที่ค้นหา</span>
+                  <span className="inline-flex items-center gap-1.5"><i className="w-3 h-3 rounded-sm border-2 border-[#d6364a] inline-block" />คนอื่น</span>
+                </div>
+              )}
+            </div>
+            {scanningCards && (
+              <p className="text-sm text-[#3b5bdb] flex items-center gap-2"><span className="spinner spinner-dark" style={{ width: 16, height: 16, borderWidth: 2 }} /> กำลังทำกรอบใบหน้าในรูปทั้งหมด...</p>
+            )}
+            {!scanningCards && matches.length > Math.min(topK, 30) && (
+              <p className="text-sm text-[#5d6882]">ทำกรอบอัตโนมัติ {Math.min(topK, 30)} รูปแรก · คลิกรูปอื่นเพื่อดูกรอบเพิ่ม</p>
+            )}
+          </>
+        )}
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
+          {matches.map((m, i) => {
+            const scanned = scanMap[m.image_url];
+            const lv = matchLevel(m.match_confidence);
+            return (
+              <figure key={`${m.image_url}-${i}`} onClick={() => setSelected(m)}
+                style={{ animationDelay: `${Math.min(i, 12) * 40}ms` }}
+                className="rise card overflow-hidden cursor-pointer transition hover:-translate-y-0.5 hover:shadow-lg"
+                title="คลิกเพื่อดูรายละเอียด">
+                <div className="relative aspect-[4/3] bg-[#eef1f8] overflow-hidden">
+                  {(imgRetry[m.image_url] ?? 0) > 2 ? (
+                    <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 p-4 text-center">
+                      <p className="text-[#5d6882] text-sm">โหลดรูปไม่ได้ชั่วคราว</p>
+                      <a href={m.image_url} target="_blank" rel="noreferrer" onClick={(e) => e.stopPropagation()}
+                        className="text-[#3b5bdb] text-sm underline">เปิดรูปต้นฉบับ</a>
+                    </div>
+                  ) : (
+                    <FacePhoto
+                      src={proxied(m.image_url) + ((imgRetry[m.image_url] ?? 0) > 0 ? `&r=${imgRetry[m.image_url]}` : '')}
+                      alt={m.title}
+                      fit="cover"
+                      boxes={scanned || [{ ...m, is_target: false }]}
+                      onError={() => setImgRetry(prev => ({ ...prev, [m.image_url]: (prev[m.image_url] ?? 0) + 1 }))}
+                      className="absolute inset-0 w-full h-full"
+                    />
+                  )}
+                  <span className="absolute top-2.5 left-2.5 px-2.5 py-1 rounded-full text-sm font-semibold shadow-sm"
+                    style={{ background: lv.bg, color: lv.color }}>
+                    {lv.label} {m.match_confidence}%
+                  </span>
+                </div>
+                <figcaption className="p-4 space-y-2">
+                  <p className="font-semibold leading-snug line-clamp-2">{m.title || 'กิจกรรม มหาวิทยาลัยสวนดุสิต'}</p>
+                  <div className="flex flex-col gap-1 text-sm text-[#5d6882]">
+                    <span className="flex items-center gap-1.5"><MapPin size={14} className="shrink-0" /><span className="truncate">{m.where || 'ม.สวนดุสิต'}</span></span>
+                    <span className="flex items-center gap-1.5"><Calendar size={14} className="shrink-0" />{m.date || `พ.ศ. ${m.year}`}</span>
+                  </div>
+                </figcaption>
+              </figure>
+            );
+          })}
+        </div>
+      </section>
+
+      {/* ───── หน้าต่างรายละเอียด ───── */}
       {selected && (() => {
         const m = selected;
         const postUrl = sourcePostUrl(m);
+        const lv = matchLevel(m.match_confidence);
         const targetCount = (allFaces || []).filter(f => f.is_target).length;
         const otherCount = (allFaces || []).length - targetCount;
         return (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#1d0b3d]/85 backdrop-blur-sm overflow-y-auto"
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-[#0f172a]/60 backdrop-blur-sm overflow-y-auto"
             onClick={() => setSelected(null)}>
-            <div className="relative w-full max-w-4xl bg-[#fffdf6] rounded-2xl overflow-hidden shadow-2xl border-t-8 border-[#d4af37] my-auto"
+            <div className="card relative w-full max-w-5xl my-auto grid lg:grid-cols-[1fr_340px] overflow-hidden"
               onClick={(e) => e.stopPropagation()}>
               <button onClick={() => setSelected(null)} title="ปิด (Esc)"
-                className="absolute top-3 right-3 z-10 p-2 bg-[#2a1152] hover:bg-[#4c1d95] text-white rounded-full transition-colors shadow-lg">
-                <X size={18} />
+                className="absolute top-3 right-3 z-20 p-2 rounded-full bg-white/95 hover:bg-[#f1f4fb] text-[#1b2437] shadow border border-[#e2e7f1]">
+                <X size={20} />
               </button>
-              <div className="px-5 pt-4 pb-3 border-b-2 border-dashed border-[#d8c690] flex items-start justify-between gap-3 flex-wrap">
-                <div className="pr-8">
-                  <p className="text-[11px] font-mono font-bold text-red-800">{evidenceNo(m.image_url, matches.indexOf(m))} · กิจกรรม {m.activity_id}</p>
-                  <h3 className="text-base sm:text-lg font-extrabold text-[#2a1152] line-clamp-2">{m.title || 'กิจกรรม มหาวิทยาลัยสวนดุสิต'}</h3>
-                </div>
-                <button onClick={() => showAllFaces(m)} disabled={loadingAll}
-                  className="shrink-0 inline-flex items-center gap-1.5 px-4 py-2 bg-[#2a1152] hover:bg-[#4c1d95] disabled:opacity-50 text-white text-xs font-extrabold rounded-xl shadow transition-colors">
-                  <Users size={14} className="text-[#f3d27a]" />
-                  {loadingAll ? 'กำลังนับ...' : allFaces ? 'นับใหม่' : 'แสดงทุกคนในรูปนี้'}
-                </button>
-              </div>
-              {allFaces && (
-                <div className="mx-5 mt-3 flex items-center gap-2 flex-wrap text-xs font-bold">
-                  <span className="px-2.5 py-1 rounded-lg bg-purple-950 text-white">พบ {allFaces.length} คน</span>
-                  <span className="px-2.5 py-1 rounded-lg bg-emerald-700 text-white">🟢 เป้าหมาย {targetCount} คน</span>
-                  <span className="px-2.5 py-1 rounded-lg bg-red-700 text-white">🔴 คนอื่น {otherCount} คน</span>
-                </div>
-              )}
-              {!allFaces && !loadingAll && (
-                <p className="mx-5 mt-2 text-[11px] text-[#2a1152]/60 font-medium">💡 เปิดการ์ดระบบจะนับทุกคนให้อัตโนมัติ (ต้องปักหมุดรูปเป้าหมายไว้ก่อน) — กรอบ 🟢เป้าหมาย / 🔴คนอื่น</p>
-              )}
-              {loadingAll && !allFaces && (
-                <p className="mx-5 mt-2 text-[11px] text-[#2a1152]/60 font-medium animate-pulse">⏳ กำลังนับใบหน้าทั้งรูป...</p>
-              )}
-              <div className="relative bg-purple-950 overflow-hidden m-5 rounded-xl" style={{ height: '55vh' }}>
+
+              <div className="relative bg-[#0f172a] min-h-[300px] lg:min-h-[540px]">
                 <FacePhoto
                   src={proxied(m.image_url)}
                   alt={m.title}
@@ -473,38 +479,54 @@ export const PersonSearch: React.FC = () => {
                   boxes={allFaces ? allFaces : [{ ...m, is_target: false }]}
                   className="absolute inset-0 w-full h-full"
                 />
-                {!allFaces && (
-                  <div className="absolute top-3 right-3 rotate-12 rounded-full border-[3px] border-red-700 bg-red-700/15 w-20 h-20 flex flex-col items-center justify-center shadow-lg pointer-events-none">
-                    <span className="text-red-700 font-black text-sm leading-none">MATCH</span>
-                    <span className="text-red-700 font-black text-sm leading-none">{m.match_confidence}%</span>
+                {loadingAll && (
+                  <div className="absolute bottom-3 left-3 px-3 py-1.5 rounded-lg bg-white/95 text-sm text-[#3b5bdb] flex items-center gap-2">
+                    <span className="spinner spinner-dark" style={{ width: 16, height: 16, borderWidth: 2 }} /> กำลังนับคนในรูป...
                   </div>
                 )}
               </div>
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 p-5 text-xs">
-                <div className="p-3 bg-white rounded-xl border border-[#d8c690] space-y-1">
-                  <span className="text-slate-500 font-bold flex items-center gap-1"><MapPin size={13} className="text-[#6d28d9]" /> สถานที่</span>
-                  <p className="text-[#2a1152] font-bold">{m.where || 'มหาวิทยาลัยสวนดุสิต'}</p>
+
+              <div className="p-5 sm:p-6 space-y-5">
+                <div className="pr-10">
+                  <h3 className="font-semibold text-lg leading-snug">{m.title || 'กิจกรรม มหาวิทยาลัยสวนดุสิต'}</h3>
                 </div>
-                <div className="p-3 bg-white rounded-xl border border-[#d8c690] space-y-1">
-                  <span className="text-slate-500 font-bold flex items-center gap-1"><Calendar size={13} className="text-[#b8860b]" /> วันที่</span>
-                  <p className="text-[#2a1152] font-bold">{m.date || `พ.ศ. ${m.year}`}</p>
+
+                <div className="rounded-xl px-4 py-3 flex items-center justify-between" style={{ background: lv.bg }}>
+                  <span className="font-semibold" style={{ color: lv.color }}>{lv.label}</span>
+                  <span className="text-2xl font-bold" style={{ color: lv.color }}>{m.match_confidence}%</span>
                 </div>
-                <div className="p-3 bg-white rounded-xl border border-[#d8c690] space-y-1">
-                  <span className="text-slate-500 font-bold">ความเหมือน</span>
-                  <p className="text-red-800 font-black">{m.match_confidence}% <span className="font-mono font-medium text-slate-400">({m.similarity})</span></p>
+
+                {allFaces ? (
+                  <div className="grid grid-cols-3 gap-2 text-center">
+                    <div className="rounded-xl bg-[#f4f6fb] py-2.5"><p className="text-xl font-bold">{allFaces.length}</p><p className="text-xs text-[#5d6882]">คนในรูป</p></div>
+                    <div className="rounded-xl bg-[#e6f6ee] py-2.5"><p className="text-xl font-bold text-[#12a05c]">{targetCount}</p><p className="text-xs text-[#5d6882]">คนที่ค้นหา</p></div>
+                    <div className="rounded-xl bg-[#fde8eb] py-2.5"><p className="text-xl font-bold text-[#d6364a]">{otherCount}</p><p className="text-xs text-[#5d6882]">คนอื่น</p></div>
+                  </div>
+                ) : !loadingAll && (
+                  <p className="text-sm text-[#5d6882]">ระบบจะแสดงกรอบและนับคนในรูปให้เมื่อมีรูปเป้าหมายที่เลือกไว้</p>
+                )}
+
+                <button onClick={() => showAllFaces(m)} disabled={loadingAll}
+                  className="btn-ghost w-full py-2.5 text-sm flex items-center justify-center gap-2 disabled:opacity-50">
+                  <Users size={16} /> {allFaces ? 'นับคนในรูปใหม่' : 'นับคนในรูปนี้'}
+                </button>
+
+                <div className="space-y-3 text-sm pt-1">
+                  <p className="flex gap-2.5"><MapPin size={17} className="text-[#3b5bdb] mt-0.5 shrink-0" /><span><span className="block text-xs text-[#5d6882]">สถานที่</span>{m.where || 'มหาวิทยาลัยสวนดุสิต'}</span></p>
+                  <p className="flex gap-2.5"><Calendar size={17} className="text-[#3b5bdb] mt-0.5 shrink-0" /><span><span className="block text-xs text-[#5d6882]">วันที่</span>{m.date || `พ.ศ. ${m.year}`}</span></p>
                 </div>
-                <div className="p-3 bg-white rounded-xl border border-[#d8c690] space-y-1">
-                  <span className="text-slate-500 font-bold">ลิงก์</span>
-                  <p className="flex flex-col gap-1">
-                    <a href={m.image_url} target="_blank" rel="noreferrer" className="text-[#6d28d9] font-bold hover:underline flex items-center gap-1">
-                      เปิดรูปต้นฉบับ <ExternalLink size={12} />
+
+                <div className="flex flex-col gap-2">
+                  <a href={m.image_url} target="_blank" rel="noreferrer"
+                    className="btn-ghost px-4 py-2.5 text-sm flex items-center justify-between">
+                    เปิดรูปต้นฉบับ <ExternalLink size={15} />
+                  </a>
+                  {postUrl && (
+                    <a href={postUrl} target="_blank" rel="noreferrer"
+                      className="btn-ghost px-4 py-2.5 text-sm flex items-center justify-between">
+                      เปิดโพสต์ต้นทาง <ExternalLink size={15} />
                     </a>
-                    {postUrl && (
-                      <a href={postUrl} target="_blank" rel="noreferrer" className="text-[#6d28d9] font-bold hover:underline flex items-center gap-1">
-                        เปิดโพสต์ต้นทาง <ExternalLink size={12} />
-                      </a>
-                    )}
-                  </p>
+                  )}
                 </div>
               </div>
             </div>

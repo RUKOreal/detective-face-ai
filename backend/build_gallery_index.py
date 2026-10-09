@@ -129,6 +129,9 @@ def main():
             if url not in done_urls and url not in skip_urls:
                 tasks.append((url, meta))
 
+    if args.max_images > 0:
+        tasks = tasks[:args.max_images]
+
     print("[index] Remaining images to process: %d" % len(tasks))
     if not tasks:
         print("[index] All images already indexed!")
